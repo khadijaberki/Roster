@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}Paie{% endblock %}
+{% block page_title %}Bulletins de Paie{% endblock %}
+{% block content %}
+<div class="page-header">
+  <span></span>
+  <a href="{% url 'paie_add' %}" class="btn btn-primary">+ Nouveau Bulletin</a>
+</div>
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Employé</th><th>Mois</th><th>Année</th><th>Salaire Base</th><th>Primes</th><th>Déductions</th><th>Net à Payer</th></tr>
+      </thead>
+      <tbody>
+        {% for b in bulletins %}
+        <tr>
+          <td><div class="emp-cell"><div class="emp-avatar">{{ b.employee.name|first|upper }}</div><span class="emp-name">{{ b.employee.name }}</span></div></td>
+          <td>{{ b.mois }}</td>
+          <td>{{ b.annee }}</td>
+          <td>{{ b.salaire_base }} MAD</td>
+          <td style="color:#10B981">+{{ b.primes }} MAD</td>
+          <td style="color:#EF4444">-{{ b.deductions }} MAD</td>
+          <td><strong>{{ b.net_a_payer }} MAD</strong></td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:32px">Aucun bulletin de paie.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

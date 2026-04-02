@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}Ajouter Document{% endblock %}
+{% block page_title %}Ajouter un Document{% endblock %}
+
+{% block content %}
+<div class="page-header" style="margin-bottom:20px;">
+  <a href="{% url 'employee_detail' emp.pk %}" class="btn btn-outline btn-sm">← Retour</a>
+</div>
+
+<!-- Titre centré -->
+<div style="font-family:'Syne',sans-serif;
+            font-size:16px;
+            font-weight:700;
+            color:var(--primary-dark);
+            margin-bottom:20px;
+            text-align:center;">
+  📄 Document pour <strong>{{ emp.name }}</strong>
+</div>
+
+<!-- Formulaire -->
+<div class="card form-card" style="max-width:500px;margin:auto;padding:20px;">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    {% for field in form %}
+    <div class="form-group" style="margin-bottom:15px;">
+      <label class="form-label">{{ field.label }}</label>
+
+      {% if field.field.widget.input_type == 'select' %}
+        <select name="{{ field.html_name }}" class="form-control" style="width:100%;">
+          {% for val,label in field.field.choices %}
+            <option value="{{ val }}" {% if field.value|stringformat:"s" == val|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+
+      {% elif field.field.widget.input_type == 'file' %}
+        <input type="file" name="{{ field.html_name }}" class="form-control">
+
+      {% else %}
+        <input type="text" name="{{ field.html_name }}" 
+               value="{{ field.value|default:'' }}" 
+               class="form-control" 
+               style="width:100%;max-width:400px;margin:auto;display:block;">
+      {% endif %}
+    </div>
+    {% endfor %}
+
+    <div style="display:flex;gap:12px;margin-top:8px;justify-content:center;">
+      <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      <a href="{% url 'employee_detail' emp.pk %}" class="btn btn-outline">Annuler</a>
+    </div>
+  </form> 
+</div>
+
+<!-- Liste des documents existants -->
+<h3 style="margin-top:40px;text-align:center;">📂 Mes documents</h3>
+<div style="max-width:600px;margin:20px auto;">
+  {% for doc in documents %}
+  <div style="display:flex;
+              justify-content:space-between;
+              align-items:center;
+              background:#f5f5f5;
+              padding:10px 15px;
+              border-radius:10px;
+              margin-bottom:10px;">
+    
+    <div>
+     📄 {{ doc.nom }} ({{ doc.type_doc }})
+    </div>
+
+    <div style="display:flex;gap:10px;">
+      <a href="{{ doc.fichier.url }}" class="btn btn-sm btn-primary">Voir</a>
+      <a href="{% url 'delete_document' doc.id %}" 
+         class="btn btn-sm btn-outline"
+         onclick="return confirm('Supprimer ce document ?')">❌ Supprimer</a>
+    </div>
+
+  </div>
+  {% empty %}
+    <p style="text-align:center;">Aucun document</p>
+  {% endfor %}
+</div>
+{% endblock %}

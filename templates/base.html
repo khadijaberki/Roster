@@ -1,0 +1,764 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roster – {% block title %}{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    /* ────────────── LAYOUT PRINCIPAL ────────────── */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f9fafb;
+      min-height: 100vh;
+    }
+
+    .layout { 
+      display: flex; 
+      min-height: 100vh; 
+    }
+
+    /* ────────────── SIDEBAR GAUCHE ────────────── */
+    .sidebar {
+      width: 260px;
+      background: linear-gradient(180deg, #1f2937 0%, #111827 100%);
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      position: fixed;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      z-index: 100;
+      box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+    }
+
+    .sidebar-logo { 
+      display: flex; 
+      align-items: center; 
+      gap: 12px; 
+      padding: 20px; 
+      border-bottom: 1px solid #374151;
+    }
+
+    .sidebar-logo img { 
+      width: 45px; 
+      height: 45px; 
+      border-radius: 10px;
+      background: white;
+      padding: 3px;
+    }
+
+    .sidebar-logo h1 { 
+      font-size: 24px; 
+      font-weight: 700; 
+      margin: 0; 
+      color: #fff; 
+    }
+
+    .sidebar-nav { 
+      flex: 1; 
+      display: flex; 
+      flex-direction: column; 
+      padding: 15px 10px;
+      gap: 5px;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 16px;
+      color: #d1d5db;
+      text-decoration: none;
+      font-weight: 500;
+      border-radius: 10px;
+      transition: all 0.3s ease;
+    }
+
+    .nav-item:hover { 
+      background: #374151; 
+      color: #fff; 
+    }
+
+    .nav-item.active { 
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    }
+
+    .nav-icon-img { 
+      width: 22px; 
+      height: 22px; 
+      object-fit: contain; 
+    }
+
+    /* User dans sidebar */
+    .sidebar-user { 
+      padding: 20px; 
+      display: flex; 
+      align-items: center; 
+      gap: 12px; 
+      border-top: 1px solid #374151;
+      background: #111827;
+    }
+
+    .avatar-sm {
+      width: 40px; 
+      height: 40px;
+      border-radius: 50%; 
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      font-weight: 700; 
+      color: #fff;
+      font-size: 1rem;
+    }
+
+    .sidebar-user-info {
+      flex: 1;
+    }
+
+    .sidebar-user-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #fff;
+    }
+
+    .sidebar-user-role {
+      font-size: 0.75rem;
+      color: #9ca3af;
+    }
+
+    /* ────────────── MAIN CONTENT DROITE ────────────── */
+    .main { 
+      flex: 1; 
+      display: flex; 
+      flex-direction: column; 
+      margin-left: 260px; /* Largeur sidebar */
+    }
+
+    /* ────────────── HEADER HORIZONTAL ────────────── */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 30px;
+      height: 70px;
+      background: #fff;
+      border-bottom: 1px solid #e5e7eb;
+      position: sticky;
+      top: 0;
+      z-index: 99;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    }
+
+    /* Titre page centré */
+    .topbar-title { 
+      flex: 1; 
+      text-align: center; 
+      font-size: 20px; 
+      font-weight: 700; 
+      color: #1f2937; 
+    }
+
+    /* Actions à droite */
+    .topbar-actions { 
+      display: flex; 
+      align-items: center; 
+      gap: 15px; 
+    }
+
+    /* Bouton notification */
+    .notif-btn {
+      position: relative;
+      width: 45px;
+      height: 45px;
+      border-radius: 12px;
+      background: #f3f4f6;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+    }
+
+    .notif-btn:hover {
+      background: #e5e7eb;
+    }
+
+    .notif-btn img {
+      width: 22px;
+      height: 22px;
+    }
+
+    #notif-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      width: 20px;
+      height: 20px;
+      background: #ef4444;
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 700;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid white;
+    }
+
+    /* Bouton déconnexion */
+    .logout-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .logout-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+    }
+
+    .logout-btn img {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* ────────────── PANEL NOTIFICATIONS ────────────── */
+    #notif-panel {
+      display: none;
+      position: absolute; 
+      right: 0; 
+      top: 55px;
+      width: 360px; 
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+      border: 1px solid #e5e7eb;
+      z-index: 9999;
+      overflow: hidden;
+    }
+
+    .notif-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid #f3f4f6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: white;
+    }
+
+    .notif-header span {
+      font-weight: 700;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .notif-header button {
+      font-size: 12px;
+      color: rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.2);
+      border: none;
+      cursor: pointer;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .notif-header button:hover {
+      background: rgba(255,255,255,0.3);
+    }
+
+    #notif-list { 
+      max-height: 400px; 
+      overflow-y: auto; 
+    }
+
+    .notif-item { 
+      padding: 14px 20px; 
+      border-bottom: 1px solid #f3f4f6; 
+      font-size: 14px;
+      background: #fff;
+      transition: all 0.2s ease;
+    }
+
+    .notif-item:hover {
+      background: #f9fafb;
+    }
+
+    .notif-item strong {
+      color: #1f2937;
+      font-weight: 600;
+    }
+
+    .notif-item small {
+      color: #9ca3af;
+      font-size: 12px;
+      display: block;
+      margin-top: 4px;
+    }
+
+    #notif-empty { 
+      padding: 40px; 
+      text-align: center; 
+      color: #9ca3af; 
+      font-size: 14px; 
+    }
+
+    /* ────────────── CONTENT AREA ────────────── */
+    .content { 
+      flex: 1; 
+      padding: 30px; 
+      background: #f9fafb;
+    }
+
+    /* Messages */
+    .messages .alert { 
+      margin-bottom: 20px;
+      padding: 16px 20px;
+      border-radius: 12px;
+      font-weight: 500;
+    }
+
+    .alert-success {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+
+    .alert-error {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .alert-warning {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+    }
+
+    .alert-info {
+      background: #dbeafe;
+      color: #1e40af;
+      border: 1px solid #bfdbfe;
+    }
+
+    /* ────────────── MODAL DÉCONNEXION ────────────── */
+    #logoutModal {
+      display: none; 
+      position: fixed; 
+      inset: 0; 
+      background: rgba(0,0,0,0.5); 
+      z-index: 9999; 
+      align-items: center; 
+      justify-content: center;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-content {
+      background: #fff; 
+      border-radius: 20px; 
+      padding: 40px; 
+      max-width: 400px; 
+      width: 90%; 
+      text-align: center;
+      box-shadow: 0 25px 50px rgba(0,0,0,0.25);
+    }
+
+    .modal-content img {
+      width: 60px;
+      height: 60px;
+      margin-bottom: 20px;
+    }
+
+    .modal-content h3 {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 12px;
+      color: #1f2937;
+    }
+
+    .modal-content p {
+      color: #6b7280;
+      font-size: 15px;
+      margin-bottom: 28px;
+    }
+
+    .modal-actions {
+      display: flex; 
+      gap: 12px; 
+      justify-content: center;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      border: none;
+      font-size: 0.95rem;
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: white;
+    }
+
+    .btn-danger:hover {
+      box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .btn-outline {
+      background: #f3f4f6;
+      color: #4b5563;
+      border: 1px solid #e5e7eb;
+    }
+
+    .btn-outline:hover {
+      background: #e5e7eb;
+    }
+
+    /* ────────────── RESPONSIVE ────────────── */
+    @media (max-width: 1024px) {
+      .sidebar {
+        width: 80px;
+      }
+      
+      .sidebar-logo h1,
+      .nav-item span,
+      .sidebar-user-info {
+        display: none;
+      }
+      
+      .sidebar-logo {
+        justify-content: center;
+        padding: 20px 10px;
+      }
+      
+      .sidebar-logo img {
+        width: 50px;
+        height: 50px;
+      }
+      
+      .nav-item {
+        justify-content: center;
+        padding: 15px;
+      }
+      
+      .sidebar-user {
+        justify-content: center;
+        padding: 15px 10px;
+      }
+      
+      .main {
+        margin-left: 80px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .sidebar {
+        transform: translateX(-100%);
+        width: 260px;
+      }
+      
+      .sidebar.active {
+        transform: translateX(0);
+      }
+      
+      .main {
+        margin-left: 0;
+      }
+      
+      .topbar {
+        padding: 0 20px;
+      }
+      
+      .topbar-title {
+        font-size: 16px;
+      }
+      
+      .logout-btn span {
+        display: none;
+      }
+    }
+    .btn-logout {
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-logout:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+}
+.notif-btn {
+  position: relative;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- ────────────── SIDEBAR GAUCHE ────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <img src="{% static 'css/image/logo.png' %}" alt="Logo">
+      <h1>Roster</h1>
+    </div>
+    
+    <nav class="sidebar-nav">
+      {% if user.employee %}
+        <a href="{% url 'espace_employe' %}" class="nav-item {% if request.resolver_match.url_name == 'espace_employe' %}active{% endif %}">
+          <img src="{% static 'css/image/myspace.png' %}" class="nav-icon-img" alt=""> 
+          <span>Mon espace</span>
+        </a>
+        <a href="#" onclick="showTab('info')" class="nav-item">
+          <img src="{% static 'css/image/info-24.png' %}" class="nav-icon-img" alt=""> 
+          <span>Mes infos</span>
+        </a>
+        <a href="#" onclick="showTab('salaire')" class="nav-item">
+          <img src="{% static 'css/image/money.png' %}" class="nav-icon-img" alt=""> 
+          <span>Salaire</span>
+        </a>
+        <a href="#" onclick="showTab('conge')" class="nav-item">
+          <img src="{% static 'css/image/congé.png' %}" class="nav-icon-img" alt=""> 
+          <span>Congé</span>
+        </a>
+        <a href="#" onclick="showTab('document')" class="nav-item">
+          <img src="{% static 'css/image/documents.png' %}" class="nav-icon-img" alt=""> 
+          <span>Documents</span>
+        </a>
+      {% else %}
+        <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+         <i class="bi bi-speedometer2"></i>
+          <span>Tableau de Bord</span>
+        </a>
+      
+      
+        
+       
+        <a href="{% url 'modele_list' %}" class="nav-item {% if 'modele' in request.resolver_match.url_name %}active{% endif %}">
+          <i class="bi bi-cpu-fill" style="color:white;"></i>
+          <span>Modèles ML</span>
+        </a>
+        {% if user.is_superuser %}
+        <a href="{% url 'admin_rh_list' %}" class="nav-item {% if 'admin_rh' in request.resolver_match.url_name %}active{% endif %}">
+         <i class="bi bi-person-gear"></i>
+          <span>Gestion RH</span>
+        </a>
+        {% endif %}
+      {% endif %}
+
+
+
+<a href="{% url 'prediction_list' %}" class="nav-item">
+  <i class="bi bi-graph-up-arrow"></i>
+  Prédictions
+</a>
+
+
+    </nav>
+
+    <!-- User Info -->
+    <div class="sidebar-user">
+      <div class="avatar-sm">{{ request.user.username|first|upper }}</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">
+          {{ request.user.get_full_name|default:request.user.username }}
+        </div>
+        <div class="sidebar-user-role">
+          {% if user.is_superuser %}Administrateur{% elif user.employee %}Employé{% else %}RH{% endif %}
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ────────────── MAIN CONTENT DROITE ────────────── -->
+  <div class="main">
+
+    <!-- HEADER HORIZONTAL -->
+    <header class="topbar">
+      <div class="topbar-title">{% block page_title %}{% endblock %}</div>
+      
+      <div class="topbar-actions">
+        <!-- Notifications -->
+        <div style="position: relative;">
+          <button class="notif-btn" id="notif-btn" onclick="toggleNotifications()">
+           <i class="bi bi-bell-fill" style="color:#8b5cf6; font-size:20px;"></i>
+            <span id="notif-badge" style="display: none;">0</span>
+          </button>
+          
+          <div id="notif-panel">
+            <div class="notif-header">
+              <span>
+                <img src="{% static 'css/image/notification.png' %}" style="width: 18px; height: 18px; filter: brightness(0) invert(1);"> 
+                Notifications
+              </span>
+              <button onclick="markAllRead()">Tout marquer lu</button>
+            </div>
+            <div id="notif-list">
+              <div id="notif-empty">Aucune notification</div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Déconnexion -->
+      <button onclick="document.getElementById('logoutModal').style.display='flex'"
+        class="btn-logout">
+  <img src="{% static 'css/image/logout.png' %}" style="width:18px; height:18px;" alt="">
+  Déconnexion
+</button>
+
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <div class="content">
+      {% if messages %}
+        <div class="messages">
+          {% for msg in messages %}
+            <div class="alert alert-{{ msg.tags }}">{{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL DÉCONNEXION -->
+<div id="logoutModal">
+  <div class="modal-content">
+    <img src="{% static 'css/image/deconexxion.png' %}" alt="Déconnexion">
+    <h3>Déconnexion</h3>
+    <p>Êtes-vous sûr de vouloir vous déconnecter ?</p>
+    <div class="modal-actions">
+      <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-danger">Se déconnecter</button>
+      </form>
+      <button onclick="document.getElementById('logoutModal').style.display='none'" class="btn btn-outline">Annuler</button>
+    </div>
+  </div>
+</div>
+
+{% block extra_js %}{% endblock %}
+
+<script>
+function loadNotifications(){
+  fetch("{% url 'notifications_api' %}")
+  .then(r => r.json())
+  .then(data => {
+    const badge = document.getElementById('notif-badge');
+    const list = document.getElementById('notif-list');
+    const empty = document.getElementById('notif-empty');
+    
+    // Nettoyer la liste
+    list.querySelectorAll('.notif-item').forEach(e => e.remove());
+    
+    if(data.count > 0){
+      badge.style.display = 'flex';
+      badge.textContent = data.count > 9 ? '9+' : data.count;
+      empty.style.display = 'none';
+      
+      data.notifications.forEach(n => {
+        const div = document.createElement('div');
+        div.className = 'notif-item';
+        div.innerHTML = `
+          <strong>${n.title || 'Notification'}</strong>
+          <div>${n.message}</div>
+          <small>${n.created_at}</small>
+        `;
+        list.appendChild(div);
+      });
+    } else {
+      badge.style.display = 'none';
+      empty.style.display = 'block';
+    }
+  })
+  .catch(err => console.error('Erreur notifications:', err));
+}
+
+function toggleNotifications(){
+  const panel = document.getElementById('notif-panel');
+  panel.style.display = (panel.style.display === 'block') ? 'none' : 'block';
+  if(panel.style.display === 'block') loadNotifications();
+}
+
+function markAllRead(){
+  fetch("{% url 'notifications_mark_read' %}", {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': '{{ csrf_token }}',
+      'Content-Type': 'application/json'
+    }
+  })
+  .then(() => {
+    document.getElementById('notif-badge').style.display = 'none';
+    document.querySelectorAll('.notif-item').forEach(e => e.remove());
+    document.getElementById('notif-empty').style.display = 'block';
+    document.getElementById('notif-panel').style.display = 'none';
+  })
+  .catch(err => console.error('Erreur:', err));
+}
+
+// Fermer notifications en cliquant ailleurs
+document.addEventListener('click', e => {
+  const btn = document.getElementById('notif-btn');
+  const panel = document.getElementById('notif-panel');
+  if(btn && panel && !panel.contains(e.target) && !btn.contains(e.target)){
+    panel.style.display = 'none';
+  }
+});
+
+// Charger notifications au démarrage
+loadNotifications();
+setInterval(loadNotifications, 30000);
+</script>
+</body>
+</html>

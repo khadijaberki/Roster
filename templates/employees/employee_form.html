@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}{{ title }}{% endblock %}
+{% block page_title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <a href="{% url 'employee_list' %}" class="btn btn-outline btn-sm">← Retour</a>
+</div>
+
+<div class="card form-card">
+  <form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <div class="form-grid">
+      {% for field in form %}
+      <div class="form-group {% if field.name == 'motif' or field.name == 'email' %}full-col{% endif %}">
+        <label class="form-label">{{ field.label }}</label>
+        {% if field.field.widget.input_type == 'select' %}
+          <select name="{{ field.html_name }}" class="form-control">
+            {% for val, label in field.field.choices %}
+            <option value="{{ val }}" {% if field.value|stringformat:"s" == val|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        {% elif field.field.widget.input_type == 'textarea' %}
+          <textarea name="{{ field.html_name }}" class="form-control" rows="3">{{ field.value|default:'' }}</textarea>
+        {% elif field.field.widget.input_type == 'file' %}
+          <input type="file" name="{{ field.html_name }}" class="form-control">
+        {% else %}
+          <input type="{{ field.field.widget.input_type|default:'text' }}" 
+                 name="{{ field.html_name }}" 
+                 value="{{ field.value|default:'' }}" 
+                 class="form-control">
+        {% endif %}
+        {% if field.errors %}<small style="color:var(--danger)">{{ field.errors|join:", " }}</small>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    <div style="display:flex;gap:12px;margin-top:8px">
+      <!-- Compte de connexion employé -->
+{% if not form.instance.pk %}
+<div style="background:#EFF6FF; border:2px solid #BFDBFE; border-radius:12px; padding:18px; margin-bottom:20px;">
+  <div style="font-weight:700; color:var(--primary-dark); margin-bottom:14px; font-size:14px;">
+     Compte de Connexion Employé
+  </div>
+  <div style="font-size:12px; color:var(--text-muted); margin-bottom:14px;">
+    Ces identifiants permettront à l'employé d'accéder à son espace personnel.
+  </div>
+  <div class="form-grid">
+    <div class="form-group">
+      <label class="form-label">Identifiant</label>
+      <input type="text" name="username" class="form-control" 
+             placeholder="ex: alice.durant" required>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mot de passe</label>
+      <input type="password" name="password" class="form-control" 
+             placeholder="Minimum 8 caractères" required>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+      <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      <a href="{% url 'employee_list' %}" class="btn btn-outline">Annuler</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

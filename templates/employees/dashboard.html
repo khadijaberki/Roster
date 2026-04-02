@@ -1,0 +1,283 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tableau de Bord - Roster{% endblock %}
+
+{% block content %}
+
+
+<style>
+#notif-btn img { filter: hue-rotate(200deg) saturate(1.5); }
+#notif-badge { background: #7c3aed !important; border: 2px solid #fff; }
+
+/* ── CONTENT GRID ── */
+.content-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* 2 colonnes : gauche stats / droite diagramme */
+  gap: 20px;
+  margin-bottom: 26px;
+}
+
+/* ── STATS GRID ── */
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* chaque carte sur une ligne */
+  gap: 18px;
+}
+
+.stat-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 22px 20px;
+  border: 1px solid #f3e8ff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(118,75,162,0.06);
+  transition: all 0.25s;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-card::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #764ba2, #667eea);
+}
+
+.stat-card:hover {
+  box-shadow: 0 8px 24px rgba(118,75,162,0.14);
+  border-color: #c4b5fd;
+  transform: translateY(-2px);
+}
+
+.stat-info h3 {
+  font-size: 12px;
+  color: #7c3aed;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 800;
+  color: #1f2937;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.stat-subtitle { font-size: 12px; color: #9ca3af; }
+
+.stat-icon-box {
+  width: 48px; height: 48px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+}
+.stat-icon-box img { width: 24px; height: 24px; object-fit: contain; }
+
+.stat-card.blue   .stat-icon-box { background: #eff6ff; }
+.stat-card.orange .stat-icon-box { background: #fff7ed; }
+.stat-card.green  .stat-icon-box { background: #f0fdf4; }
+.stat-card.purple .stat-icon-box { background: #f5f3ff; }
+
+/* ── DIAGRAM / PREDICTION / RH SECTION ── */
+.diagram-section {
+  text-align: center; /* centre le titre */
+  background: #fff;
+  border-radius: 14px;
+  padding: 22px 20px;
+  border: 1px solid #f3e8ff;
+  box-shadow: 0 2px 8px rgba(118,75,162,0.06);
+  position: relative;
+  overflow: hidden;
+  transition: all 0.25s;
+}
+
+.diagram-section::after {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #764ba2, #667eea);
+}
+
+.diagram-section:hover {
+  box-shadow: 0 8px 24px rgba(118,75,162,0.14);
+  border-color: #c4b5fd;
+  transform: translateY(-2px);
+}
+
+.diagram-section h3 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: #4b5563;
+}
+
+.chart-flex {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+#deptChart {
+  max-width: 400px;
+  max-height: 400px;
+}
+
+.dept-legend {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  text-align: right;
+  margin: 10px;
+  background: rgba(255,255,255,0.9);
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.dept-item {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.dept-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background-color: #667eea;
+}
+
+.dept-pct {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1100px) {
+  .content-grid { grid-template-columns: 1fr; }
+  .chart-flex { justify-content: center; margin-top: 20px; }
+  .dept-legend { position: static; text-align: center; margin: 10px auto; }
+}
+</style>
+<h1>Tableau de Bord</h1><br><br>
+
+<div class="content-grid">
+  <!-- ── COLONNE GAUCHE : STATS ── -->
+  <div>
+    <div class="stats-grid">
+      <div class="stat-card blue">
+        <div class="stat-info">
+          <h3>Employés</h3>
+          <div class="stat-value">{{ total_employees }}</div>
+          <div class="stat-subtitle">Total actifs</div>
+        </div>
+        <div class="stat-icon-box">
+          <img src="{% static 'css/image/employees.png' %}">
+        </div>
+      </div>
+
+      <div class="stat-card purple">
+        <div class="stat-info">
+          <h3>Prédictions</h3>
+          <div class="stat-value">{{ total_predictions }}</div>
+          <div class="stat-subtitle">Analyses IA</div>
+        </div>
+        <div class="stat-icon-box">
+          <img src="{% static 'css/image/prediction.png' %}">
+        </div>
+      </div>
+
+      <div class="stat-card orange">
+        <div class="stat-info">
+          <h3>RH</h3>
+          <div class="stat-value">{{ total_rh }}</div>
+          <div class="stat-subtitle">Total RH actifs</div>
+        </div>
+        <div class="stat-icon-box">
+          <img src="{% static 'css/image/rh.png' %}">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── COLONNE DROITE : DIAGRAMME ── -->
+  <div class="diagram-section">
+    <h3>Statistiques des Employés par Département</h3>
+    <div class="chart-flex">
+      <canvas id="deptChart" width="200" height="200" style="flex-shrink:0;"></canvas>
+      <div class="dept-legend" id="deptLegend">
+        {% for d in dept_data %}
+        <div class="dept-item">
+          <div class="dept-dot" data-idx="{{ forloop.counter0 }}"></div>
+          <span>{{ d.name }}</span>
+          <span class="dept-pct">{{ d.pct }}%</span>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const colors = ['#764ba2','#667eea','#10b981','#f59e0b','#ef4444','#06b6d4'];
+const deptData = {{ dept_data|safe }};
+
+// Couleur des dots de légende
+document.querySelectorAll('.dept-dot').forEach(el => {
+  el.style.background = colors[parseInt(el.dataset.idx)] || '#ccc';
+});
+
+// Graphique donut
+const ctx = document.getElementById('deptChart').getContext('2d');
+new Chart(ctx, {
+  type: 'doughnut',
+  data: {
+    labels: deptData.map(d => d.name),
+    datasets: [{
+      data: deptData.map(d => d.count),
+      backgroundColor: colors.slice(0, deptData.length),
+      borderWidth: 3,
+      borderColor: '#fff'
+    }]
+  },
+  options: {
+    cutout: '68%',
+    responsive: false,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: c => ` ${c.label}: ${c.raw} employés` } }
+    },
+    animation: { duration: 900, easing: 'easeInOutQuart' }
+  }
+});
+
+// Animation compteurs
+document.querySelectorAll('.stat-value').forEach(el => {
+  const end = parseInt(el.textContent) || 0;
+  let cur = 0;
+  const step = Math.max(1, Math.floor(end / 20));
+  const t = setInterval(() => {
+    cur = Math.min(cur + step, end);
+    el.textContent = cur;
+    if (cur >= end) clearInterval(t);
+  }, 40);
+});
+</script>
+{% endblock %}

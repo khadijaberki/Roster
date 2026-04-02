@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Supprimer{% endblock %}
+{% block page_title %}Confirmer la Suppression{% endblock %}
+{% block content %}
+<div class="card form-card" style="max-width:480px">
+  <div style="text-align:center;padding:16px 0">
+    <div style="font-size:48px;margin-bottom:16px">⚠️</div>
+    <h2 style="font-family:'Syne',sans-serif;font-size:20px;color:var(--primary-dark);margin-bottom:8px">
+      Supprimer cet {{ type }} ?
+    </h2>
+    <p style="color:var(--text-muted);font-size:14px;margin-bottom:28px">
+      <strong>{{ obj }}</strong> sera définitivement supprimé. Cette action est irréversible.
+    </p>
+    <form method="post" style="display:flex;gap:12px;justify-content:center">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">🗑️ Oui, supprimer</button>
+      <a href="javascript:history.back()" class="btn btn-outline">Annuler</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

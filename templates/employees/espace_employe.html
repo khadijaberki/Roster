@@ -1,0 +1,167 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Espace Employé{% endblock title %}
+
+{% block content %}
+
+  {% csrf_token %}
+  <div class="form-grid" style="margin-bottom:16px;">
+    <div class="form-group">
+      <label class="form-label">Nom du document</label>
+      <input type="text" name="nom" class="form-input" placeholder="Ex: Diplôme universitaire" required>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Type de document</label>
+      <select name="type_document" class="form-select">
+        <option value="certificat">Certificat</option>
+        <option value="attestation">Attestation</option>
+        <option value="cv">CV</option>
+        <option value="diplome">Diplôme</option>
+        <option value="autre">Autre</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-group" style="margin-bottom:20px;">
+    <label class="form-label">Fichier</label>
+    <input type="file" name="fichier" class="form-input" style="padding:8px 14px;" required>
+  </div>
+  <button type="submit" name="add_document" class="btn-primary-emp"> Ajouter le document</button>
+  </form>
+  </div>
+
+  <!-- Liste des documents -->
+  <div class="emp-card">
+    <div class="emp-card-title"> Mes Documents ({{ documents|length }})</div>
+    {% if documents %}
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        {% for doc in documents %}
+        <div class="doc-item">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <span style="font-size:26px;">
+              {% if doc.type_document == 'cv' %}
+                📄
+              {% elif doc.type_document == 'diplome' %}
+                🎓
+              {% elif doc.type_document == 'certificat' %}
+                📜
+              {% elif doc.type_document == 'attestation' %}
+                ✅
+              {% else %}
+                📁
+              {% endif %}
+            </span>
+            <div>
+              <div style="font-size:14px;font-weight:600;color:var(--slate-900);">{{ doc.nom }}</div>
+              <div style="font-size:12px;color:var(--slate-400);text-transform:capitalize;">{{ doc.type_document }}</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <a href="{{ doc.fichier.url }}" target="_blank" class="btn-view-emp">Voir</a>
+            <a href="{% url 'delete_document' doc.id %}" class="btn-danger-emp"
+               onclick="return confirm('Supprimer ce document ?')">🗑️ Supprimer</a>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <div class="empty-icon"></div>
+        <p>Aucun document ajouté. Utilisez le formulaire ci-dessus.</p>
+      </div>
+    {% endif %}
+  </div>
+
+</div>
+
+
+<!-- ══════════════════════════════════════
+     MODAL MODIFIER PROFIL (nom + photo)
+════════════════════════════════════════ -->
+<div id="modal-profil" class="emp-modal">
+  <div class="emp-modal-box">
+    <button onclick="document.getElementById('modal-profil').style.display='none'"
+      style="position:absolute;top:16px;right:16px;background:var(--slate-100);border:none;border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;">✕</button>
+
+    <h3 style="font-size:18px;font-weight:700;color:var(--slate-900);margin-bottom:24px;"> Modifier mon profil</h3>
+
+    <form method="post" enctype="multipart/form-data" action="{% url 'espace_employe' %}">
+      {% csrf_token %}
+      <input type="hidden" name="update_nom" value="1">
+
+      <!-- Aperçu avatar -->
+      <div style="text-align:center;margin-bottom:24px;">
+        <div id="avatar-preview"
+          style="width:88px;height:88px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--indigo));display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:800;color:white;margin:0 auto 12px;overflow:hidden;box-shadow:0 4px 18px rgba(99,102,241,.3);">
+          {% if employee.photo %}
+            <img src="{{ employee.photo.url }}" style="width:88px;height:88px;object-fit:cover;">
+          {% else %}
+            {{ employee.name|first|upper }}
+          {% endif %}
+        </div>
+        <label for="photo-upload-modal" style="cursor:pointer;font-size:13px;color:var(--blue);font-weight:700;">📷 Changer la photo</label>
+        <input type="file" name="photo" id="photo-upload-modal" accept="image/*" style="display:none;" onchange="previewPhoto(this)">
+      </div>
+
+      <!-- Nom -->
+      <div class="form-group" style="margin-bottom:20px;">
+        <label class="form-label">Nom complet</label>
+        <input type="text" name="name" value="{{ employee.name }}" required class="form-input"
+          style="font-size:15px;font-weight:600;">
+      </div>
+
+      <div style="display:flex;gap:10px;">
+        <button type="submit" class="btn-primary-emp" style="flex:1;justify-content:center;">💾 Sauvegarder</button>
+        <button type="button" class="btn-secondary-emp"
+          onclick="document.getElementById('modal-profil').style.display='none'">Annuler</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════ -->
+<script>
+// ── Switch tabs ──
+function showTab(tabId, btn) {
+  // Cacher tous les contenus
+  document.querySelectorAll('.tab-content').forEach(div => div.style.display = 'none');
+  // Désactiver tous les boutons
+  document.querySelectorAll('.emp-tab-btn').forEach(b => b.classList.remove('active'));
+  // Afficher le bon onglet
+  document.getElementById(tabId).style.display = 'block';
+  // Activer le bon bouton
+  if (btn) btn.classList.add('active');
+}
+
+// ── Lire l'onglet depuis l'URL au chargement ──
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const tab = params.get('tab');
+  if (tab) {
+    const btn = document.getElementById('btn-' + tab);
+    if (btn) showTab(tab, btn);
+  }
+})();
+
+// ── Fermer modal en cliquant à l'extérieur ──
+document.getElementById('modal-profil').addEventListener('click', function(e) {
+  if (e.target === this) this.style.display = 'none';
+});
+
+// ── Aperçu photo avant upload ──
+function previewPhoto(input) {
+  if (input.files && input.files[0]) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      document.getElementById('avatar-preview').innerHTML =
+        `<img src="${e.target.result}" style="width:88px;height:88px;object-fit:cover;border-radius:50%;">`;
+    };
+    reader.readAsDataURL(input.files[0]);
+  }
+}
+</script>
+
+{% endblock content %}

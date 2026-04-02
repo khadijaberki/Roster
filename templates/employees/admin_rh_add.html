@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block title %}Ajouter RH{% endblock %}
+{% block page_title %}Créer un Compte RH{% endblock %}
+{% block content %}
+<div class="page-header"><a href="{% url 'admin_rh_list' %}" class="btn btn-outline btn-sm">← Retour</a></div>
+<div class="card form-card">
+  <form method="post">{% csrf_token %}
+    <div class="form-group">
+      <label class="form-label">Nom d'utilisateur</label>
+      <input type="text" name="username" class="form-control" required placeholder="ex: rh_marie">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Email</label>
+      <input type="email" name="email" class="form-control" placeholder="email@entreprise.com">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Mot de passe</label>
+      <input type="password" name="password" class="form-control" required>
+    </div>
+    <div style="display:flex;gap:12px;margin-top:8px;">
+      <button type="submit" class="btn btn-primary"> Créer le compte</button>
+      <a href="{% url 'admin_rh_list' %}" class="btn btn-outline">Annuler</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,289 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Roster – {% block title %}{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .nav-icon-img {
+      width: 22px;
+      height: 22px;
+      object-fit: contain;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    .topbar-icon-img {
+      width: 26px;
+      height: 26px;
+      object-fit: contain;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">
+        <svg width="26" height="26" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M18 10 L18 90 L32 90 L32 58 L52 90 L70 90 L48 55 C58 52 68 44 68 30 C68 18 58 10 44 10 Z M32 22 L42 22 C50 22 54 26 54 32 C54 38 50 46 42 46 L32 46 Z" fill="white"/>
+          <circle cx="36" cy="36" r="5" fill="#10B981"/>
+          <rect x="32" y="43" width="8" height="12" rx="4" fill="#10B981"/>
+          <circle cx="50" cy="33" r="6" fill="#3B82F6"/>
+          <rect x="45" y="41" width="10" height="14" rx="5" fill="#3B82F6"/>
+          <circle cx="64" cy="36" r="5" fill="#F59E0B"/>
+          <rect x="60" y="43" width="8" height="12" rx="4" fill="#F59E0B"/>
+        </svg>
+      </div>
+      <span>Roster</span>
+    </div>
+
+    <nav class="sidebar-nav">
+
+      {% if user.employee %}
+        <!-- MENU EMPLOYÉ -->
+        <a href="{% url 'espace_employe' %}" class="nav-item {% if request.resolver_match.url_name == 'espace_employe' %}active{% endif %}">
+          <img src="{% static 'css/image/mon_espace.png' %}" class="nav-icon-img" alt="Mon espace"> Mon espace
+        </a>
+        <a href="#" onclick="showTab('info')" class="nav-item">
+          <img src="{% static 'css/image/mes_informations.png' %}" class="nav-icon-img" alt="Mes infos"> Mes infos
+        </a>
+        <a href="#" onclick="showTab('salaire')" class="nav-item">
+          <img src="{% static 'css/image/salaire.png' %}" class="nav-icon-img" alt="Salaire"> Salaire
+        </a>
+        <a href="#" onclick="showTab('conge')" class="nav-item">
+          <img src="{% static 'css/image/cong%C3%A9.png' %}" class="nav-icon-img" alt="Congé"> Congé
+        </a>
+        <a href="#" onclick="showTab('document')" class="nav-item">
+          <img src="{% static 'css/image/documents.png' %}" class="nav-icon-img" alt="Documents"> Documents
+        </a>
+
+      {% else %}
+        <!-- MENU RH + ADMIN -->
+        <a href="{% url 'dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+          <img src="{% static 'css/image/dashboard.png' %}" class="nav-icon-img" alt="Dashboard"> Tableau de Bord
+        </a>
+        <a href="{% url 'employee_list' %}" class="nav-item {% if 'employee' in request.resolver_match.url_name %}active{% endif %}">
+          <img src="{% static 'css/image/employees.png' %}" class="nav-icon-img" alt="Employés"> Employés
+        </a>
+        <a href="{% url 'conge_list' %}" class="nav-item {% if 'conge' in request.resolver_match.url_name %}active{% endif %}">
+          <img src="{% static 'css/image/cong%C3%A9.png' %}" class="nav-icon-img" alt="Congés"> Congés
+        </a>
+        <a href="{% url 'paie_list' %}" class="nav-item {% if 'paie' in request.resolver_match.url_name %}active{% endif %}">
+          <img src="{% static 'css/image/salaire.png' %}" class="nav-icon-img" alt="Paie"> Paie
+        </a>
+        <a href="{% url 'prediction_list' %}" class="nav-item {% if 'prediction' in request.resolver_match.url_name %}active{% endif %}">
+          <img src="{% static 'css/image/prediction.png' %}" class="nav-icon-img" alt="Prédictions"> Prédictions
+        </a>
+        <a href="{% url 'modele_list' %}" class="nav-item {% if 'modele' in request.resolver_match.url_name %}active{% endif %}">
+          <img src="{% static 'css/image/modele_ml.png' %}" class="nav-icon-img" alt="Modèles ML"> Modèles ML
+        </a>
+        {% if user.is_superuser %}
+        <a href="{% url 'admin_rh_list' %}" class="nav-item {% if 'admin_rh' in request.resolver_match.url_name %}active{% endif %}">
+          <img src="{% static 'css/image/admin.png' %}" class="nav-icon-img" alt="Gestion Admin"> Gestion Admin
+        </a>
+        {% endif %}
+      {% endif %}
+
+    </nav>
+
+    <!-- USER INFO -->
+    <div class="sidebar-user">
+      <div class="avatar-sm">{{ request.user.username|first|upper }}</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-name">
+          {{ request.user.get_full_name|default:request.user.username }}
+        </div>
+        <div class="sidebar-user-role">
+          {% if user.is_superuser %}
+            Administrateur
+          {% elif user.employee %}
+            Employé
+          {% else %}
+            RH
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-title">{% block page_title %}{% endblock %}</div>
+
+      <div class="topbar-actions">
+
+        <!-- NOTIFICATIONS -->
+        <div style="position:relative; display:inline-block;">
+          <button id="notif-btn" onclick="toggleNotifications()"
+            style="background:none; border:none; cursor:pointer; position:relative; padding:4px 8px;">
+            <img src="{% static 'css/image/notification.png' %}" class="topbar-icon-img" alt="Notifications">
+            <span id="notif-badge" style="
+              display:none;
+              position:absolute; top:-2px; right:2px;
+              background:#ef4444; color:white;
+              border-radius:50%; width:18px; height:18px;
+              font-size:10px; font-weight:700;
+              line-height:18px; text-align:center;">0</span>
+          </button>
+
+          <!-- Panneau notifications -->
+          <div id="notif-panel" style="
+            display:none;
+            position:absolute; right:0; top:44px;
+            width:340px; background:#fff;
+            border-radius:14px;
+            box-shadow:0 8px 40px rgba(0,0,0,0.18);
+            border:1px solid #e5e7eb;
+            z-index:9999; overflow:hidden;">
+
+            <div style="padding:14px 18px; border-bottom:1px solid #f3f4f6;
+                        display:flex; justify-content:space-between; align-items:center;">
+              <span style="font-weight:700; font-size:15px; display:flex; align-items:center; gap:8px;">
+                <img src="{% static 'css/image/notification.png' %}" style="width:18px;height:18px;" alt="">
+                Notifications
+              </span>
+              <button onclick="markAllRead()" style="
+                font-size:11px; color:#6366f1; background:none;
+                border:none; cursor:pointer; font-weight:600;">
+                Tout marquer lu
+              </button>
+            </div>
+
+            <div id="notif-list" style="max-height:360px; overflow-y:auto;">
+              <div id="notif-empty" style="padding:30px; text-align:center; color:#9ca3af; font-size:13px;">
+                Aucune notification
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- FIN NOTIFICATIONS -->
+
+        <!-- DÉCONNEXION -->
+        <button onclick="document.getElementById('logoutModal').style.display='flex'"
+                class="btn btn-outline btn-sm"
+                style="display:inline-flex; align-items:center; gap:6px;">
+          <img src="{% static 'css/image/deconexxion.png' %}" style="width:18px; height:18px;" alt="">
+          Déconnexion
+        </button>
+
+      </div>
+    </header>
+
+    <!-- LOGOUT MODAL -->
+    <div id="logoutModal"
+         style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9999;align-items:center;justify-content:center;">
+      <div style="background:#fff;border-radius:16px;padding:36px 40px;max-width:380px;width:90%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+        <div style="margin-bottom:16px;">
+          <img src="{% static 'css/image/deconexxion.png' %}" style="width:52px; height:52px;" alt="">
+        </div>
+        <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:var(--primary-dark);margin-bottom:8px;">
+          Déconnexion
+        </div>
+        <div style="color:var(--text-muted);font-size:14px;margin-bottom:28px;">
+          Êtes-vous sûr de vouloir vous déconnecter ?
+        </div>
+        <div style="display:flex;gap:12px;justify-content:center;">
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Se déconnecter</button>
+          </form>
+          <button onclick="document.getElementById('logoutModal').style.display='none'"
+                  class="btn btn-outline">Annuler</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+      {% if messages %}
+      <div class="messages">
+        {% for msg in messages %}
+        <div class="alert alert-{{ msg.tags }}">{{ msg }}</div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% block content %}{% endblock %}
+    </div>
+
+  </div>
+</div>
+
+{% block extra_js %}{% endblock %}
+
+<script>
+function loadNotifications() {
+  fetch("{% url 'notifications_api' %}")
+    .then(r => r.json())
+    .then(data => {
+      const badge = document.getElementById('notif-badge');
+      const list  = document.getElementById('notif-list');
+      const empty = document.getElementById('notif-empty');
+
+      list.querySelectorAll('.notif-item').forEach(e => e.remove());
+
+      if (data.count > 0) {
+        badge.style.display = 'block';
+        badge.textContent = data.count > 9 ? '9+' : data.count;
+        empty.style.display = 'none';
+
+        data.notifications.forEach(n => {
+          const div = document.createElement('div');
+          div.className = 'notif-item';
+          div.style.cssText = 'padding:12px 18px; border-bottom:1px solid #f9fafb; font-size:13px; background:#f0f4ff;';
+          div.innerHTML = `
+            <div style="color:#1e293b; font-weight:500;">${n.message}</div>
+            <div style="color:#9ca3af; font-size:11px; margin-top:3px;">${n.created_at}</div>
+          `;
+          list.appendChild(div);
+        });
+      } else {
+        badge.style.display = 'none';
+        empty.style.display = 'block';
+      }
+    })
+    .catch(err => console.error('Erreur notifications:', err));
+}
+
+function toggleNotifications() {
+  const panel = document.getElementById('notif-panel');
+  const isOpen = panel.style.display === 'block';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if (!isOpen) loadNotifications();
+}
+
+function markAllRead() {
+  fetch("{% url 'notifications_mark_read' %}", {
+    method: 'POST',
+    headers: {'X-CSRFToken': '{{ csrf_token }}'}
+  }).then(() => {
+    document.getElementById('notif-badge').style.display = 'none';
+    document.getElementById('notif-list').querySelectorAll('.notif-item').forEach(e => e.remove());
+    document.getElementById('notif-empty').style.display = 'block';
+    document.getElementById('notif-panel').style.display = 'none';
+  });
+}
+
+document.addEventListener('click', function(e) {
+  const btn   = document.getElementById('notif-btn');
+  const panel = document.getElementById('notif-panel');
+  if (btn && panel && !btn.contains(e.target) && !panel.contains(e.target)) {
+    panel.style.display = 'none';
+  }
+});
+
+loadNotifications();
+setInterval(loadNotifications, 30000);
+</script>
+
+</body>
+</html>

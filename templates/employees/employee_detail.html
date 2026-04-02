@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% block title %}{{ emp.name }}{% endblock %}
+{% block page_title %}Fiche Employé{% endblock %}
+{% block content %}
+<div class="page-header">
+  <a href="{% url 'employee_list' %}" class="btn btn-outline btn-sm">← Retour</a>
+  <a href="{% url 'employee_edit' emp.pk %}" class="btn btn-primary btn-sm">✏️ Modifier</a>
+</div>
+
+<!-- Infos principales -->
+<div class="card" style="margin-bottom:24px;">
+  <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+    <div class="emp-avatar" style="width:72px;height:72px;font-size:28px;">
+      {% if emp.photo %}<img src="{{ emp.photo.url }}" alt="">{% else %}{{ emp.name|first|upper }}{% endif %}
+    </div>
+    <div style="flex:1;">
+      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--primary-dark);">{{ emp.name }}</div>
+      <div style="color:var(--text-muted);font-size:14px;margin-top:4px;">{{ emp.poste }} — {{ emp.department }}</div>
+      <div style="margin-top:8px;">
+        {% if emp.status == 'actif' %}<span class="badge badge-green">Actif</span>{% else %}<span class="badge badge-red">Inactif</span>{% endif %}
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;font-size:13px;">
+      <div><span style="color:var(--text-muted);">Email:</span> <strong>{{ emp.email }}</strong></div>
+      <div><span style="color:var(--text-muted);">Salaire:</span> <strong>{{ emp.salaire }} MAD</strong></div>
+      <div><span style="color:var(--text-muted);">Embauché le:</span> <strong>{{ emp.date_embauche }}</strong></div>
+      <div><span style="color:var(--text-muted);">Âge:</span> <strong>{{ emp.age }} ans</strong></div>
+    </div>
+  </div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+
+  <!-- Documents -->
+  <div class="card">
+    <div class="section-title">
+      📄 Documents
+      <a href="{% url 'document_add' emp.pk %}" class="btn btn-primary btn-sm">+ Ajouter</a>
+    </div>
+    {% for doc in docs %}
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div>
+        <div style="font-weight:600;font-size:14px;">{{ doc.nom }}</div>
+        <div style="font-size:12px;color:var(--text-muted);">{{ doc.get_type_doc_display }} — {{ doc.created_at|date:"d/m/Y" }}</div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <a href="{{ doc.fichier.url }}" target="_blank" class="btn btn-sm btn-outline">📥</a>
+        <form method="post" action="{% url 'document_delete' doc.pk %}" onsubmit="return confirm('Supprimer ?')">
+          {% csrf_token %}<button type="submit" class="btn btn-sm" style="background:#FEE2E2;color:#B91C1C;">🗑️</button>
+        </form>
+      </div>
+    </div>
+    {% empty %}
+    <p style="color:var(--text-muted);font-size:14px;padding:12px 0;">Aucun document.</p>
+    {% endfor %}
+  </div>
+
+  <!-- Congés -->
+  <div class="card">
+    <div class="section-title">🏖️ Congés</div>
+    {% for c in conges %}
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div>
+        <div style="font-size:13px;font-weight:600;">{{ c.date_debut }} → {{ c.date_fin }}</div>
+        <div style="font-size:12px;color:var(--text-muted);">{{ c.nb_jours }} jours — {{ c.motif|default:"—" }}</div>
+      </div>
+      {% if c.status == 'Approuvé' %}<span class="badge badge-green">{{ c.status }}</span>
+      {% elif c.status == 'Refusé' %}<span class="badge badge-red">{{ c.status }}</span>
+      {% else %}<span class="badge badge-orange">{{ c.status }}</span>{% endif %}
+    </div>
+    {% empty %}
+    <p style="color:var(--text-muted);font-size:14px;padding:12px 0;">Aucun congé.</p>
+    {% endfor %}
+  </div>
+
+  <!-- Bulletins -->
+  <div class="card">
+    <div class="section-title">💰 Bulletins de Paie</div>
+    {% for b in bulletins %}
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div style="font-size:13px;font-weight:600;">{{ b.mois }} {{ b.annee }}</div>
+      <strong style="color:var(--primary);">{{ b.net_a_payer }} MAD</strong>
+    </div>
+    {% empty %}
+    <p style="color:var(--text-muted);font-size:14px;padding:12px 0;">Aucun bulletin.</p>
+    {% endfor %}
+  </div>
+
+  <!-- Prédictions -->
+  <div class="card">
+    <div class="section-title">🔮 Prédictions</div>
+    {% for p in predictions %}
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);">
+      <div>
+        <div style="font-size:13px;font-weight:600;">{{ p.resultat }}</div>
+        <div style="font-size:12px;color:var(--text-muted);">{{ p.date_prediction }}</div>
+      </div>
+      <strong style="font-size:16px;color:{% if p.score >= 60 %}#EF4444{% elif p.score >= 40 %}#F97316{% else %}#10B981{% endif %};">{{ p.score }}%</strong>
+    </div>
+    {% empty %}
+    <p style="color:var(--text-muted);font-size:14px;padding:12px 0;">Aucune prédiction.</p>
+    {% endfor %}
+  </div>
+
+</div>
+{% endblock %}

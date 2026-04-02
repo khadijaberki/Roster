@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<h1>Prédictions RH</h1>
+<div class="page-header">
+  <span></span>
+  <a href="{% url 'prediction_add' %}" class="btn btn-primary">+ Lancer Prédiction</a>
+</div>
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>Employé</th><th>Score</th><th>Résultat</th><th>Date</th><th>Statut</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for p in predictions %}
+        <tr>
+          <td><div class="emp-cell"><div class="emp-avatar">{{ p.employee.name|first|upper }}</div><span class="emp-name">{{ p.employee.name }}</span></div></td>
+          <td>
+            <div class="score-bar">
+              <span style="font-weight:700;font-size:14px;width:36px">{{ p.score }}%</span>
+              <div class="score-track">
+                <div class="score-fill" style="width:{{ p.score }}%;background:{% if p.score >= 70 %}#10B981{% elif p.score >= 40 %}#F97316{% else %}#EF4444{% endif %}"></div>
+              </div>
+            </div>
+          </td>
+          <td>{{ p.resultat }}</td>
+          <td>{{ p.date_prediction }}</td>
+          <td>
+            {% if p.status == 'Satisfaisant' %}<span class="badge badge-green">{{ p.status }}</span>
+            {% elif p.status == 'À surveiller' %}<span class="badge badge-orange">{{ p.status }}</span>
+            {% else %}<span class="badge badge-gray">{{ p.status }}</span>{% endif %}
+          </td>
+          <td>
+            <form method="post" action="{% url 'prediction_delete' p.pk %}" onsubmit="return confirm('Supprimer cette prédiction ?')">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm" style="background:#FEE2E2;color:#B91C1C;"> Supprimer</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="5" style="text-align:center;color:var(--text-muted);padding:32px">Aucune prédiction.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
