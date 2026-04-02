@@ -1,9 +1,256 @@
 {% extends 'employees/base_rh.html' %}
-{% load static %}
 
-
-
+{% block title %}Tableau de Bord{% endblock %}
 
 {% block content %}
-<p>Bienvenue dans l'espace RH.</p>
+
+<style>
+/* ===== STATS GRID COMPACT ===== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.stat-card {
+  padding: 12px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.stat-number {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ===== COLORS ===== */
+.stat-card.blue { background: #eff6ff; color: #2563EB; }
+.stat-card.orange { background: #fff7ed; color: #F97316; }
+.stat-card.green { background: #ecfdf5; color: #10B981; }
+.stat-card.purple { background: #f5f3ff; color: #8B5CF6; }
+
+/* ===== GRID ===== */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+/* ===== CARD ===== */
+.card {
+  background: #fff;
+  padding: 14px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.section-title {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* ===== CHART ===== */
+.chart-wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.dept-item {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  padding: 4px 0;
+}
+
+.dept-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+/* ===== TABLE ===== */
+.table-wrap table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table-wrap th,
+.table-wrap td {
+  padding: 8px;
+  font-size: 13px;
+}
+
+.emp-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+}
+
+/* ===== SCORE ===== */
+.score-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.score-track {
+  flex: 1;
+  height: 6px;
+  background: #eee;
+  border-radius: 10px;
+}
+
+.score-fill {
+  height: 6px;
+  border-radius: 10px;
+}
+
+/* ===== BADGES ===== */
+.badge {
+  padding: 3px 8px;
+  font-size: 11px;
+  border-radius: 6px;
+}
+
+.badge-green { background: #d1fae5; color: #065f46; }
+.badge-red { background: #fee2e2; color: #991b1b; }
+.badge-orange { background: #ffedd5; color: #9a3412; }
+.badge-gray { background: #e5e7eb; color: #374151; }
+
+</style>
+
+<h1>Tableau de bord</h1>
+<br>
+
+<!-- ===== STATS ===== -->
+<div class="stats-grid">
+  <div class="stat-card blue">
+    <div>
+      <div class="stat-number">{{ total_employees }}</div>
+      <div class="stat-label">Employés</div>
+    </div>
+  </div>
+
+  <div class="stat-card orange">
+    <div>
+      <div class="stat-number">{{ total_conges }}</div>
+      <div class="stat-label">Demandes de Congé</div>
+    </div>
+  </div>
+
+  <div class="stat-card green">
+    <div>
+      <div class="stat-number">{{ total_bulletins }}</div>
+      <div class="stat-label">Bulletins de Paie</div>
+    </div>
+  </div>
+
+  <div class="stat-card purple">
+    <div>
+      <div class="stat-number">{{ total_predictions }}</div>
+      <div class="stat-label">Prédictions</div>
+    </div>
+  </div>
+</div>
+
+<br>
+
+<!-- ===== GRID ===== -->
+<div class="grid-2">
+
+  <!-- ===== CHART ===== -->
+  <div class="card">
+    <div class="section-title">Statistiques des Employés</div>
+
+    <div class="chart-wrap">
+      <canvas id="deptChart" width="140" height="140"></canvas>
+
+      <div>
+        {% for d in dept_data %}
+        <div class="dept-item">
+          <div class="dept-dot"></div>
+          <span>{{ d.name }}</span>
+          <strong style="margin-left:auto">{{ d.pct }}%</strong>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CONGES ===== -->
+  <div class="card">
+    <div class="section-title">
+      Demandes Récentes
+      <a href="{% url 'conge_list' %}" class="badge">Voir</a>
+    </div>
+
+    {% for c in recent_conges %}
+    <div style="display:flex;justify-content:space-between;padding:8px 0;">
+      <span>{{ c.employee.name }}</span>
+
+      {% if c.status == 'Approuvé' %}
+        <span class="badge badge-green">{{ c.status }}</span>
+      {% elif c.status == 'Refusé' %}
+        <span class="badge badge-red">{{ c.status }}</span>
+      {% else %}
+        <span class="badge badge-orange">{{ c.status }}</span>
+      {% endif %}
+    </div>
+    {% empty %}
+      <p>Aucune demande</p>
+    {% endfor %}
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const colors = ['#2563EB','#F97316','#10B981','#8B5CF6','#EF4444','#06B6D4'];
+
+const deptData = {{ dept_data|safe }};
+
+document.querySelectorAll('.dept-dot').forEach((el, i) => {
+  el.style.background = colors[i];
+});
+
+const ctx = document.getElementById('deptChart').getContext('2d');
+
+new Chart(ctx, {
+  type: 'doughnut',
+  data: {
+    labels: deptData.map(d => d.name),
+    datasets: [{
+      data: deptData.map(d => d.count),
+      backgroundColor: colors,
+      borderWidth: 2
+    }]
+  },
+  options: {
+    cutout: '70%',
+    plugins: {
+      legend: { display: false }
+    }
+  }
+});
+</script>
 {% endblock %}

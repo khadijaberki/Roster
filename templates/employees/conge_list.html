@@ -1,12 +1,10 @@
-{% extends 'base.html' %}
+{% extends 'employees/base_rh.html' %}
 {% block title %}Congés{% endblock %}
-{% block page_title %}Demandes de Congé{% endblock %}
+
 
 {% block content %}
-<div class="page-header">
-  <span></span>
-  <a href="{% url 'conge_add' %}" class="btn btn-primary">+ Nouvelle Demande</a>
-</div>
+<h1>Gestion des Congés</h1>
+<br>
 
 <div class="card">
   <div class="table-wrap">
@@ -43,8 +41,8 @@
           <td>
             <div class="actions">
               {% if c.status == 'En attente' %}
-              <a href="{% url 'conge_status' c.pk 'Approuvé' %}" class="btn btn-sm" style="background:#DCFCE7;color:#15803D">✓</a>
-              <a href="{% url 'conge_status' c.pk 'Refusé' %}" class="btn btn-sm" style="background:#FEE2E2;color:#B91C1C">✗</a>
+              <a href="{% url 'conge_status' c.pk 'Approuvé' %}" class="btn btn-sm" style="background:#DCFCE7;color:#15803D">accepté</a>
+              <a href="{% url 'conge_status' c.pk 'Refusé' %}" class="btn btn-sm" style="background:#FEE2E2;color:#B91C1C">refusé</a>
               {% endif %}
             </div>
           </td>

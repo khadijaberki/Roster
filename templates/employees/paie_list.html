@@ -1,7 +1,8 @@
-{% extends 'base.html' %}
+{% extends 'employees/base_rh.html' %}
 {% block title %}Paie{% endblock %}
-{% block page_title %}Bulletins de Paie{% endblock %}
+
 {% block content %}
+<h1>Gestion de la Paie</h1>
 <div class="page-header">
   <span></span>
   <a href="{% url 'paie_add' %}" class="btn btn-primary">+ Nouveau Bulletin</a>
