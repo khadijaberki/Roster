@@ -619,3 +619,4 @@ def notifications_mark_read(request):
     """Marque toutes les notifications comme lues"""
     Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
     return JsonResponse({'status': 'ok'})
+  
