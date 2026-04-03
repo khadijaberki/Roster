@@ -290,15 +290,29 @@ def conge_add(request):
     if request.method == 'POST':
         form = CongeForm(request.POST)
         if form.is_valid():
-            conge = form.save()
-            notifier_rh(f"🏖️ Nouvelle demande de congé : {conge.employee.name} du {conge.date_debut} au {conge.date_fin}")
-            messages.success(request, 'Demande de congé ajoutée.')
+            conge = form.save(commit=False)
+
+            # 🔥 lier automatiquement l'utilisateur
+            conge.employee = request.user.employee
+
+            # 🔥 statut automatique
+            conge.status = "En attente"
+
+            conge.save()
+
+            notifier_rh(
+                f"Nouvelle demande de congé : {conge.employee.name} du {conge.date_debut} au {conge.date_fin}"
+            )
+
+            messages.success(request, 'Demande de congé envoyée avec succès.')
             return redirect('conge_list')
     else:
         form = CongeForm()
-    return render(request, 'employees/conge_form.html', {'form': form, 'title': 'Nouvelle Demande de Congé'})
 
-
+    return render(request, 'employees/conge_form.html', {
+        'form': form,
+        'title': 'Nouvelle Demande de Congé'
+    })
 @login_required
 def conge_update_status(request, pk, status):
     conge        = get_object_or_404(CongeRequest, pk=pk)
